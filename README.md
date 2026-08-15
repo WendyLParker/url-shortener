@@ -32,6 +32,35 @@ I chose **Python + FastAPI** because I am actively interviewing and focused on l
 | GET    | `/{short_url}`            | Redirect to the original URL       |
 | GET    | `/analytics/{short_url}`  | Get click analytics                |
 
+### Project Structure
+
+```
+url-shortener/
+├── app/
+│   ├── main.py              # FastAPI app instance, lifespan, root route
+│   ├── core/
+│   │   └── config.py        # pydantic-settings configuration
+│   ├── db/
+│   │   ├── base.py          # SQLAlchemy declarative base
+│   │   ├── session.py       # Async engine / session factory
+│   │   └── redis.py         # Redis client
+│   ├── models/               # SQLAlchemy ORM models (empty for now)
+│   ├── schemas/               # Pydantic schemas
+│   └── api/
+│       ├── deps.py          # Shared FastAPI dependencies
+│       └── v1/
+│           ├── router.py    # Aggregates all v1 routers
+│           └── endpoints/
+│               └── health.py
+├── alembic/                  # Async-aware Alembic migration environment
+├── tests/
+├── docker/entrypoint.sh      # Runs migrations, then starts uvicorn
+├── Dockerfile
+├── docker-compose.yml
+├── pyproject.toml
+└── .env.example
+```
+
 ### Getting Started
 
 ```bash
@@ -39,8 +68,35 @@ I chose **Python + FastAPI** because I am actively interviewing and focused on l
 git clone https://github.com/WendyLParker/url-shortener.git
 cd url-shortener
 
-# Start the full stack
+# Create your local environment file
+cp .env.example .env
+
+# Start the full stack (API + Postgres + Redis)
 docker compose up --build
 ```
+
 API docs will be available at: http://localhost:8000/docs
+Health check: http://localhost:8000/api/v1/health
+
+### Local Development (without Docker)
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+# Point POSTGRES_HOST / REDIS_HOST at localhost in your .env, then:
+alembic upgrade head
+uvicorn app.main:app --reload
+```
+
+### Database Migrations
+
+```bash
+# Autogenerate a migration after adding/changing models in app/models/
+alembic revision --autogenerate -m "add short_urls table"
+
+# Apply migrations
+alembic upgrade head
+```
 
