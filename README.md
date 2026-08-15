@@ -26,11 +26,25 @@ When evaluating options for a high-traffic, low-latency URL shortener, three str
 I chose **Python + FastAPI** because I am actively interviewing and focused on landing a stable role. It currently offers the broadest job market opportunities, strengthens my portfolio with a modern in-demand skill set, and complements recent AI-related learning.
 
 ### API Endpoints
-| Method | Endpoint                  | Description                        |
-|--------|---------------------------|------------------------------------|
-| POST   | `/shorten`                | Create a short URL                 |
-| GET    | `/{short_url}`            | Redirect to the original URL       |
-| GET    | `/analytics/{short_url}`  | Get click analytics                |
+| Method | Endpoint                          | Description                             |
+|--------|------------------------------------|------------------------------------------|
+| GET    | `/api/v1/health`                  | Health check (API, Postgres, Redis)     |
+| POST   | `/api/v1/shorten`                 | Create a short URL                      |
+| GET    | `/api/v1/{short_code}`            | Redirect to the original URL            |
+| GET    | `/api/v1/analytics/{short_code}`  | Get click analytics for a short code    |
+
+```bash
+# Create a short URL
+curl -X POST http://localhost:8000/api/v1/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"original_url": "https://example.com/some/very/long/path"}'
+
+# Follow the redirect
+curl -i http://localhost:8000/api/v1/<short_code>
+
+# Check analytics
+curl http://localhost:8000/api/v1/analytics/<short_code>
+```
 
 ### Project Structure
 
@@ -44,14 +58,22 @@ url-shortener/
 │   │   ├── base.py          # SQLAlchemy declarative base
 │   │   ├── session.py       # Async engine / session factory
 │   │   └── redis.py         # Redis client
-│   ├── models/               # SQLAlchemy ORM models (empty for now)
-│   ├── schemas/               # Pydantic schemas
+│   ├── models/
+│   │   └── url.py           # ShortURL ORM model
+│   ├── schemas/
+│   │   ├── health.py
+│   │   └── url.py           # Shorten / analytics Pydantic schemas
+│   ├── services/
+│   │   └── url_shortener.py # Short-code generation, cache-aside lookup, click tracking
 │   └── api/
 │       ├── deps.py          # Shared FastAPI dependencies
 │       └── v1/
 │           ├── router.py    # Aggregates all v1 routers
 │           └── endpoints/
-│               └── health.py
+│               ├── health.py
+│               ├── shorten.py
+│               ├── analytics.py
+│               └── redirect.py
 ├── alembic/                  # Async-aware Alembic migration environment
 ├── tests/
 ├── docker/entrypoint.sh      # Runs migrations, then starts uvicorn
