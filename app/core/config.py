@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     # Base URL used when building short links
     BASE_URL: str = "http://localhost:8000"
 
+    # Short URL cache
+    SHORT_CODE_LENGTH: int = 7
+    URL_CACHE_TTL_SECONDS: int = 86400
+
     @property
     def DATABASE_URL(self) -> str:
         """Async SQLAlchemy connection string for the application (asyncpg driver)."""
