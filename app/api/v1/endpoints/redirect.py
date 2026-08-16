@@ -1,22 +1,26 @@
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, Path, status
 from fastapi.responses import RedirectResponse
 
 from app.api.deps import DbSession, RedisClient
-from app.services.url_shortener import increment_click_count, resolve_short_code
+from app.services.url_shortener import SHORT_CODE_PATTERN, increment_click_count, resolve_short_code
 
 router = APIRouter()
 
 
 @router.get("/{short_code}")
 async def redirect_to_original_url(
-    short_code: str, db: DbSession, redis: RedisClient
+    short_code: Annotated[str, Path(pattern=SHORT_CODE_PATTERN)],
+    db: DbSession,
+    redis: RedisClient,
 ) -> RedirectResponse:
-    """
-    Resolve a short code and redirect to the original URL.
+    """Resolve a short code and redirect to its original URL, tracking a click.
 
-    Note: Testing this endpoint from the Swagger UI often fails due to browser CORS/redirect restrictions.
-    Please test it by opening the short URL directly in a browser or with:
-    curl -v http://localhost:8000/api/v1/{short_code}
+    Note: Swagger UI's "Try it out" follows redirects via the browser's fetch
+    API, which silently swallows the 307 response. To actually see the
+    redirect, open the short URL directly in a browser tab, or run:
+    `curl -i http://localhost:8000/api/v1/{short_code}`.
     """
     original_url = await resolve_short_code(db, redis, short_code)
     if original_url is None:
