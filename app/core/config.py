@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -36,8 +37,10 @@ class Settings(BaseSettings):
     BASE_URL: str = "http://localhost:8000"
 
     # Short URL cache
-    SHORT_CODE_LENGTH: int = 7
-    URL_CACHE_TTL_SECONDS: int = 86400
+    # ge=4 keeps enough entropy to avoid frequent collisions; le=16 matches
+    # the `short_code` column width in the ShortURL model.
+    SHORT_CODE_LENGTH: int = Field(default=7, ge=4, le=16)
+    URL_CACHE_TTL_SECONDS: int = Field(default=86400, ge=0)
 
     @property
     def DATABASE_URL(self) -> str:

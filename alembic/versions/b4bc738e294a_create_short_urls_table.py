@@ -22,7 +22,7 @@ def upgrade() -> None:
         "short_urls",
         sa.Column("id", sa.BigInteger(), autoincrement=True, nullable=False),
         sa.Column("short_code", sa.String(length=16), nullable=False),
-        sa.Column("original_url", sa.String(length=2048), nullable=False),
+        sa.Column("original_url", sa.String(length=2083), nullable=False),
         sa.Column("click_count", sa.Integer(), server_default="0", nullable=False),
         sa.Column(
             "created_at",

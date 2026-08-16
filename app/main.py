@@ -11,6 +11,7 @@ from app.db.session import engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Dispose of the DB engine and Redis client cleanly on shutdown."""
     yield
     await engine.dispose()
     await redis_client.aclose()
